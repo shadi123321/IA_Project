@@ -1,0 +1,22 @@
+<?php
+
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\JwtMiddleware;
+
+Route::get('/', function () {
+    return response()->json(['message' => 'Hello world!']);
+});
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/verifyEmail/{id}', [AuthController::class, 'verifyEmail']);
+        Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
+Route::middleware([JwtMiddleware::class])->group(function () {
+    Route::get('/user', [AuthController::class, 'getUser']);
+ 
+
+
+    Route::put('/user', [AuthController::class, 'updateUser']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
