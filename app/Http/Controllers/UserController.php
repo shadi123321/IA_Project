@@ -8,17 +8,16 @@ use App\Models\ComplaintAttachment;
 use App\Models\ComplaintStatusHistory;
 use App\Models\User;
 use GuzzleHttp\Promise\Create;
+use Illuminate\Support\Facades\Storage;
+
 class UserController extends Controller
 {
-   
+
    public function SubmitComplain(Request $request)
 {
-    //user id =auth->user(); instead of  'user_id' => $request->user_id,
-   // add attachment
-
     $request->validate([
         'type' => 'required|string',
-        'government_entity_id' => 'required|exists:government_entities,entity_id',
+        'government_entity_id' => 'required',/* |exists:government_entities,entity_id',*/
         'location' => 'nullable|string',
         'description' => 'nullable|string',
         'attachments.*' => 'file|max:4096'
@@ -28,7 +27,7 @@ class UserController extends Controller
 
     $complaint = Complaint::create([
         'reference_number' => $reference,
-       'user_id' => $request->user_id,
+        'user_id' => 3, //
         'government_entity_id' => $request->government_entity_id,
         'type' => $request->type,
         'location' => $request->location,
@@ -36,52 +35,97 @@ class UserController extends Controller
     ]);
 
     if ($request->hasFile('attachments')) {
-        foreach ($request->attachments as $file) {
-            $path = $file->store('attachments');
+        foreach ($request->file('attachments') as $file) {
+            $path = $file->store('attachments', 'public');
 
-            ComplaintAttachment::create([
-                'complaint_id' => $complaint->complaint_id,
+            $mime = $file->getClientMimeType();
+            $type = str_contains($mime, 'image') ? 'image' : 'document';
+
+            $complaint->attachments()->create([
                 'file_path' => $path,
+                'type' => $type,
             ]);
         }
     }
 
-    return response()->json([
-        'message' => 'Complaint submitted successfully',
-        'reference_number' => $reference
-    ]);
+    return response()->json(['message' => 'Complaint submitted successfully']);
 }
+
+
 public function myComplaints()
 {
-    $complaints = Complaint::where('user_id', auth()->id())->get();
+    /*$userId = auth('api')->id();
+    if (!$userId) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }*/
+
+    $complaints = Complaint::with(['attachments', 'governmentEntity'])
+        ->where('user_id', 3)
+        ->latest('complaint_id')
+        ->get();
+
+
+    $complaints->each(function ($complaint) {
+        $complaint->attachments->transform(function ($attachment) {
+            $attachment->file_path = Storage::url($attachment->file_path);
+            return $attachment;
+        });
+    });
 
     return response()->json($complaints);
 }
+
+
+
+
 public function show($reference)
 {
     $complaint = Complaint::where('reference_number', $reference)
         ->with(['attachments', 'histories.handler'])
         ->firstOrFail();
 
+
+    $complaint->attachments->transform(function ($attachment) {
+        $attachment->file_path = Storage::url($attachment->file_path);
+        return $attachment;
+    });
+
     return response()->json($complaint);
 }
+
+
 public function addAttachment(Request $request, $reference)
 {
-    $request->validate(['file' => 'required|file|max:4096']);
+    $request->validate([
+        'file' => 'required|file|max:4096'
+    ]);
 
     $complaint = Complaint::where('reference_number', $reference)->firstOrFail();
 
-    $this->authorize('update', $complaint);
+    // Store the file on the public disk
+    $path = $request->file('file')->store('attachments', 'public');
 
-    $path = $request->file->store('attachments');
+    // Use the relationship to create the attachment
 
-    ComplaintAttachment::create([
-        'complaint_id' => $complaint->complaint_id,
-        'file_path' => $path
+    $mime = $request->file('file')->getClientMimeType();
+    $type = str_contains($mime, 'image') ? 'image' : 'document';
+
+    $attachment = $complaint->attachments()->create([
+        'file_path' => $path,
+        'type' => $type,
     ]);
 
-    return response()->json(['message' => 'Attachment added']);
+    // Replace file_path with a public URL for frontend use
+    $attachment->file_path = Storage::url($attachment->file_path);
+
+    return response()->json([
+        'message' => 'Attachment added successfully',
+        'attachment' => $attachment
+    ]);
 }
+
+
+
 public function employeeComplaints()
 {
     $user = auth()->user();

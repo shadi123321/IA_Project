@@ -10,6 +10,10 @@ Route::get('/', function () {
     return response()->json(['message' => 'Hello world!']);
 });
 Route::post('/SubmitComplain', [UserController::class, 'SubmitComplain']);
+Route::post('/addAttachment/{refernce}', [UserController::class, 'addAttachment']);
+Route::get('/show/{refernce}', [UserController::class, 'show']);
+Route::get('/showall', [UserController::class, 'myComplaints']);
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -17,7 +21,7 @@ Route::post('/login', [AuthController::class, 'login']);
         Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('/user', [AuthController::class, 'getUser']);
- 
+
 
 
     Route::put('/user', [AuthController::class, 'updateUser']);
