@@ -5,6 +5,12 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Complaint;
+use App\Models\ComplaintAttachment;
+use App\Models\ComplaintStatusHistory;
+use App\Models\GovernmentEntity;
+
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +21,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(GovernmentEntitySeeder::class);
+         $this->call(RolesAndPermissionsSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // مواطنين
+        User::factory(30)->create();
+
+        // موظفين
+        User::factory(10)->employee()->create();
+
+        // أدمن واحد
+        User::factory()->admin()->create([
+            'email' => 'admin@test.com',
         ]);
+
+        // شكاوى
+        Complaint::factory(50)->create();
+
+        // مرفقات
+        ComplaintAttachment::factory(100)->create();
+
+        // سجل حالات
+        ComplaintStatusHistory::factory(100)->create();
     }
+
 }

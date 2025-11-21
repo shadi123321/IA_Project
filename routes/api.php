@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\JwtMiddleware;
 
 Route::get('/', function () {
     return response()->json(['message' => 'Hello world!']);
 });
+Route::post('/SubmitComplain', [UserController::class, 'SubmitComplain']);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
