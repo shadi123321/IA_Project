@@ -15,15 +15,21 @@ class ComplaintStatusHistoryFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
-    {
-       return [
-            'complaint_id' => Complaint::inRandomOrder()->first()->complaint_id,
-            'handled_by' => User::whereIn('status', [1,2])->inRandomOrder()->first()->id,
-            'status' => fake()->randomElement(['new', 'processing', 'resolved', 'rejected']),
-            'note' => fake()->sentence(),
-            'changed_at' => now(),
-        ];
-    
-    }
+   public function definition(): array
+{
+    // Get a random employee (status = 1 or 2)
+    $employee = User::whereIn('status', [1, 2])->inRandomOrder()->first();
+
+    return [
+        'complaint_id' => Complaint::inRandomOrder()->first()->complaint_id,
+
+        // إذا لم يوجد موظف → null
+        'handled_by' => $employee?->id,
+
+        'status' => fake()->randomElement(['new', 'processing', 'resolved', 'rejected']),
+        'note' => fake()->sentence(),
+        'changed_at' => now(),
+    ];
+}
+
 }

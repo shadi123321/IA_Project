@@ -23,17 +23,16 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(GovernmentEntitySeeder::class);
          $this->call(RolesAndPermissionsSeeder::class);
+             $this->call(AdminSeeder::class);
+
 
         // مواطنين
         User::factory(30)->create();
 
         // موظفين
-        User::factory(10)->employee()->create();
+        User::factory(20)->employee()->create();
 
-        // أدمن واحد
-        User::factory()->admin()->create([
-            'email' => 'admin@test.com',
-        ]);
+     
 
         // شكاوى
         Complaint::factory(50)->create();

@@ -28,6 +28,7 @@ class AuthService
         'password' => Hash::make($data['password']),
         'email_verified_at' => null,
     ]);
+    $user->assignRole('citizen');  
 
     // إرسال كود التحقق
     $this->verification->sendCode($user);
@@ -47,8 +48,9 @@ class AuthService
 
     public function loginUser($data)
 {
-    $email = $data['email'];
-    $password = $data['password'];
+    $email = trim($data['email']);
+
+     $password = $data['password'];
 
     $key = 'login-attempts:' . $email;
     $maxAttempts = 5;
@@ -79,7 +81,7 @@ class AuthService
     RateLimiter::clear($key);
 
     // إرسال كود التفعيل لو الايميل غير مفعل
-    if (is_null($user->email_verified_at)) {
+    if (is_null($user->email_verified_at)||$user->status==0) {
 
         $token = JWTAuth::fromUser($user);
 
@@ -89,7 +91,7 @@ class AuthService
             'status' => 'email_not_verified',
             'user' => $user,
             'token' => $token,
-            'expires_in' => auth('api')->factory()->getTTL() * 60
+            'expires_in' => auth('api')->factory()->getTTL() * 600
         ];
     }
 
@@ -104,8 +106,36 @@ class AuthService
         'status' => 'success',
         'user' => $user,
         'token' => $token,
-        'expires_in' => auth('api')->factory()->getTTL() * 60
+        'expires_in' => auth('api')->factory()->getTTL() * 600
     ];
 }
+/*
+public function registerEmployee($data)
+{
+    // إنشاء المستخدم
+    $user = User::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'password' => Hash::make($data['password']),
+        'email_verified_at' => now(),
+        'status'=>1, // يمكن مباشرة تفعيل البريد للموظف
+        'government_entity_id' => $data['government_entity_id'] ?? null,
+    ]);
+
+    $user->assignRole('employee');  // تعيين دور الموظف
+
+    // إنشاء JWT Token
+    try {
+        $token = JWTAuth::fromUser($user);
+    } catch (JWTException $e) {
+        throw new \Exception("Could not create token");
+    }
+
+    return [
+        'user' => $user,
+        'token' => $token
+    ];
+}
+    */
 
 }

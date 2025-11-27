@@ -3,18 +3,28 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use app\Http\Middleware\JwtMiddleware;
+use App\Http\Middleware\JwtMiddleware; // لاحظ حرف A كبير في App
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middlewares\PermissionMiddleware;
+use Spatie\Permission\Middlewares\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-            api: __DIR__.'/../routes/api.php', // ✅ هذا السطر هو الذي يفعّل الـ API routes
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
          $middleware->alias([
-            'jwt' => JwtMiddleware::class
+            'jwt' => JwtMiddleware::class,
+      'role' =>  RoleMiddleware::class,
+             //     'permission' => PermissionMiddleware::class,
+                //  'role_or_permission' => RoleOrPermissionMiddleware::class,
+
+
+
+         
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

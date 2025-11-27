@@ -11,6 +11,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Services\VerificationService;
+use Illuminate\Support\Facades\Mail;
+
  use     App\Services\EmailVerificationService;
   use App\Services\AuthService;
   use App\Http\Requests\RegisterRequest;
@@ -41,9 +43,6 @@ public function register(RegisterRequest $request)
         'user_id' => $result['user']->id
     ], 201);
 }
-
-    
-   
 public function login(LoginRequest $request)
 {
     $result = $this->auth->loginUser($request->validated());
@@ -51,10 +50,26 @@ public function login(LoginRequest $request)
     switch ($result['status']) {
 
         case 'rate_limited':
-            return response()->json([
-                'message' => 'Too many login attempts. Try again in ' . $result['seconds'] . ' seconds.',
-                'retry_after' => $result['seconds']
-            ], 429);
+    $user = $result['user'];
+
+             // إرسال إيميل للمستخدم
+        $emailBody = "Dear {$user->name},\n\n"
+                   . "You have exceeded the maximum number of login attempts. "
+                   . "Please wait {$result['seconds']} seconds before trying again.";
+
+        Mail::raw($emailBody, function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Login Attempt Limit Reached');
+        });
+
+        // الرد على العميل
+        return response()->json([
+            'message' => 'Too many login attempts. Try again in ' . $result['seconds'] . ' seconds.',
+            'retry_after' => $result['seconds']
+        ], 429);
+
+    break;
+
 
         case 'invalid_credentials':
             return response()->json([
@@ -68,7 +83,7 @@ public function login(LoginRequest $request)
                 'user_id' => $result['user']->id,
                 'token' => $result['token'],
                 'expires_in' => $result['expires_in'],
-            ], 403);
+            ], 200);
 
         case 'success':
             return response()->json([
@@ -85,10 +100,6 @@ public function login(LoginRequest $request)
     }
 }
 
-
-    /**
-     * Email Verification: User enters the code
-     */
    public function verifyEmail(Request $request, $id)
 {
     $request->validate([
@@ -111,18 +122,12 @@ public function login(LoginRequest $request)
     ]);
 }
 
-
-    /**
-     * Resend verification code
-     */
     public function resendCode( $id)
-    {
-        
-
-        $user = User::findOrFail($id);
-if ($user->email_verified_at !== null) {
-    return response()->json(['message' => 'Email already verified.'], 400);
-}
+{
+    $user = User::findOrFail($id);
+      if ($user->email_verified_at !== null) {
+         return response()->json(['message' => 'Email already verified.'], 400);
+    }
          
         $this->verification->sendCode($user);
 
@@ -133,7 +138,7 @@ if ($user->email_verified_at !== null) {
      * Logout user
      */
    public function logout()
-{
+ {
     try {
         $user = Auth::user();
         JWTAuth::invalidate(JWTAuth::getToken());
@@ -141,6 +146,7 @@ if ($user->email_verified_at !== null) {
         // إذا أردت تعطيل الحساب عند logout، فقط ضع email_verified_at = null
         if ($user) {
             $user->email_verified_at = null;
+            $user->status=0;
             $user->save();
         }
     } catch (JWTException $e) {

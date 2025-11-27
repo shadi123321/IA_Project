@@ -22,7 +22,7 @@ class SendVerificationCodeJob implements ShouldQueue
     {
         $this->user = $user;
         $this->code = $code;
-        $this->subject = "Flow Trip - Email Verification";
+        $this->subject = "Email Verification";
     }
 
     public function handle()

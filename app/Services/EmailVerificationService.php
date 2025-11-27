@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Jobs\SendVerificationCodeJob;
  class EmailVerificationService
 {
-   public function sendCode(User $user, int $minutes = 1)
+   public function sendCode(User $user, int $minutes = 5)
 {
     $code = rand(111111, 999999);
 
