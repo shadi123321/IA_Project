@@ -42,8 +42,6 @@ public function register(RegisterRequest $request)
     ], 201);
 }
 
-    
-   
 public function login(LoginRequest $request)
 {
     $result = $this->auth->loginUser($request->validated());
@@ -117,13 +115,11 @@ public function login(LoginRequest $request)
      */
     public function resendCode( $id)
     {
-        
 
         $user = User::findOrFail($id);
 if ($user->email_verified_at !== null) {
     return response()->json(['message' => 'Email already verified.'], 400);
 }
-         
         $this->verification->sendCode($user);
 
         return response()->json(['message' => 'Verification code resent.']);
@@ -154,7 +150,6 @@ if ($user->email_verified_at !== null) {
     /**
      * Refresh token
      */
-    /* 
     public function refresh()
     {
         try {
@@ -170,8 +165,6 @@ if ($user->email_verified_at !== null) {
             return response()->json(['error' => 'Could not refresh token'], 500);
         }
     }
-
-     
     public function getUser()
     {
         try {
@@ -184,8 +177,6 @@ if ($user->email_verified_at !== null) {
             return response()->json(['error' => 'Failed to fetch user profile'], 500);
         }
     }
-
-    
     public function updateUser(Request $request)
     {
         try {
@@ -196,5 +187,4 @@ if ($user->email_verified_at !== null) {
             return response()->json(['error' => 'Failed to update user'], 500);
         }
     }
-     */
 }

@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\Storage;
 class UserController extends Controller
 {
 
-   public function SubmitComplain(Request $request)
+   public function SubmitComplaint(Request $request)
 {
     $request->validate([
         'type' => 'required|string',
         'government_entity_id' => 'required',/* |exists:government_entities,entity_id',*/
         'location' => 'nullable|string',
         'description' => 'nullable|string',
-        'attachments.*' => 'file|max:4096'
+        'attachments.*' => 'file|max:4096' // تحديد لواحق 
     ]);
 
     $reference = "CMP-" . uniqid();
@@ -59,29 +59,49 @@ public function myComplaints()
         return response()->json(['message' => 'Unauthenticated'], 401);
     }*/
 
-    $complaints = Complaint::with(['attachments', 'governmentEntity'])
+    $complaints = Complaint::with('governmentEntity')
         ->where('user_id', 3)
         ->latest('complaint_id')
         ->get();
 
-
+    return $complaints;
+/*
     $complaints->each(function ($complaint) {
         $complaint->attachments->transform(function ($attachment) {
             $attachment->file_path = Storage::url($attachment->file_path);
             return $attachment;
         });
     });
-
+*/
     return response()->json($complaints);
 }
 
+public function myComplaintsAtt()
+{
+    /*$userId = auth('api')->id();
+    if (!$userId) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }*/
 
+    $attachments = ComplaintAttachment::whereHas('complaint', function ($q) {
+        $q->where('user_id', 3);
+    })->get();
+
+    foreach($attachments as $attachment)
+    {
+        $attachment->file_path = Storage::url($attachment->file_path);
+    }
+
+    return response()->json([
+        'attachments' => $attachments
+    ]);
+}
 
 
 public function show($reference)
 {
     $complaint = Complaint::where('reference_number', $reference)
-        ->with(['attachments', 'histories.handler'])
+        ->with(['histories.handler'])
         ->firstOrFail();
 
 
@@ -91,6 +111,21 @@ public function show($reference)
     });
 
     return response()->json($complaint);
+}
+
+public function showAtt($reference)
+{
+    $attachments = ComplaintAttachment::whereHas('complaint', function ($q) use ($reference) {
+        $q->where('reference_number', $reference);
+    })->get();
+
+    foreach ($attachments as $attachment) {
+        $attachment->file_path = Storage::url($attachment->file_path);
+    }
+
+    return response()->json([
+        'attachments' => $attachments
+    ]);
 }
 
 
@@ -123,7 +158,6 @@ public function addAttachment(Request $request, $reference)
         'attachment' => $attachment
     ]);
 }
-
 
 
 public function employeeComplaints()
