@@ -19,18 +19,22 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
- ////////citizen mmiddleware 
+ ////////citizen mmiddleware
     Route::middleware([JwtMiddleware::class, 'role:citizen'])->group(function () {
-           Route::post('/OwisaddAttachment', [UserController::class, 'OwisaddAttachment']);
-          Route::get('/Owisshow', [UserController::class, 'Owisshow']);
-          Route::get('/ OwismyComplaints ', [UserController::class, ' OwismyComplaints']);
-          Route::post('/ OwisSubmitComplain', [UserController::class, ' OwisSubmitComplain']);
-          Route::get('/getRole', [UserController::class, 'getRole']);
-     
+
+        Route::post('/submitComplaint', [UserController::class, 'SubmitComplaint']);
+        Route::get('/myComplaints', [UserController::class, 'myComplaints']);
+        Route::get('/myComplaintsAtt', [UserController::class, 'myComplaintsAtt']);
+        Route::get('/show/{refernce}', [UserController::class, 'show']);
+        Route::get('/showAtt/{refernce}', [UserController::class, 'showAtt']);
+        Route::post('/addAttachment/{refernce}', [UserController::class, 'addAttachment']);
+
+        Route::get('/getRole', [UserController::class, 'getRole']);
+
   });
- ////////admin mmiddleware 
+ ////////admin mmiddleware
     Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
-      
+
               Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
          Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
         Route::get('/showEmployee/{id}', [AdminController::class, 'showEmployee']);
@@ -39,7 +43,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
         Route::delete('/deleteEmployee/{id}', [AdminController::class, 'deleteEmployee']);
     });
 
- ////////employee mmiddleware 
+ ////////employee mmiddleware
 Route::middleware([JwtMiddleware::class,'role:employee'])->group(function () {
           Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
          Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
@@ -47,4 +51,4 @@ Route::middleware([JwtMiddleware::class,'role:employee'])->group(function () {
 
         });
 
-       
+
