@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace App\Http\Middleware;
 
 use Closure;
@@ -36,5 +36,5 @@ class JwtMiddleware
 
         return $next($request);
     }
-    
+
 }

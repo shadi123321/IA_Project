@@ -128,7 +128,7 @@ public function login(LoginRequest $request)
       if ($user->email_verified_at !== null) {
          return response()->json(['message' => 'Email already verified.'], 400);
     }
-         
+
         $this->verification->sendCode($user);
 
         return response()->json(['message' => 'Verification code resent.']);
@@ -144,11 +144,11 @@ public function login(LoginRequest $request)
         JWTAuth::invalidate(JWTAuth::getToken());
 
         // إذا أردت تعطيل الحساب عند logout، فقط ضع email_verified_at = null
-        if ($user) {
+        /*if ($user) {
             $user->email_verified_at = null;
             $user->status=0;
             $user->save();
-        }
+        }*/
     } catch (JWTException $e) {
         return response()->json(['error' => 'Failed to logout, please try again'], 500);
     }
@@ -160,7 +160,7 @@ public function login(LoginRequest $request)
     /**
      * Refresh token
      */
-    /* 
+    /*
     public function refresh()
     {
         try {
@@ -177,7 +177,7 @@ public function login(LoginRequest $request)
         }
     }
 
-     
+
     public function getUser()
     {
         try {
@@ -191,7 +191,7 @@ public function login(LoginRequest $request)
         }
     }
 
-    
+
     public function updateUser(Request $request)
     {
         try {

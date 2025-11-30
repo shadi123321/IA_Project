@@ -10,7 +10,7 @@ use \App\Services\VerificationService;
 use App\Services\EmailVerificationService;
 use Illuminate\Support\Facades\RateLimiter;
 
-class AuthService 
+class AuthService
 {
     protected $verification;
 
@@ -28,7 +28,7 @@ class AuthService
         'password' => Hash::make($data['password']),
         'email_verified_at' => null,
     ]);
-    $user->assignRole('citizen');  
+    $user->assignRole('citizen');
 
     // إرسال كود التحقق
     $this->verification->sendCode($user);
@@ -81,7 +81,7 @@ class AuthService
     RateLimiter::clear($key);
 
     // إرسال كود التفعيل لو الايميل غير مفعل
-    if (is_null($user->email_verified_at)||$user->status==0) {
+    if (is_null($user->email_verified_at)/*||$user->status==0*/) {
 
         $token = JWTAuth::fromUser($user);
 
