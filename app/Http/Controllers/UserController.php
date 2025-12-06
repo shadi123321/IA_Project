@@ -22,6 +22,16 @@ class UserController extends Controller
         $this->statusService = $statusService;
     }
 
+    public function complaints()
+    {
+        $complaints = Complaint::paginate(20);
+
+        return response()->json([
+            'status' => true,
+            'complaints' => $complaints
+        ]);
+    }
+
 public function showComplaint($reference_number)//Request $request)
 {
     /*

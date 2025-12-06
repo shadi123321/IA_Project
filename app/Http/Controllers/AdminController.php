@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 class AdminController extends Controller
 {
-  
+
     public function storeEmployee(Request $request)
     {
         $request->validate([
@@ -37,13 +37,13 @@ class AdminController extends Controller
             'employee' => $user,
         ], 201);
     }
-   
+
       public function indexEmployees(Request $request)
 {
         $request->validate([
         'government_entity_id' => 'required|exists:government_entities,entity_id'
       ]);
- 
+
     $employees = User::with('governmentEntity')
         ->where('government_entity_id', $request->government_entity_id)
         ->whereHas('roles', function ($q) {
@@ -64,7 +64,7 @@ class AdminController extends Controller
     ]);
 }
 
-    
+
     public function showEmployee($id)
     {
         $employee = User::whereHas('roles', function($q){
@@ -83,11 +83,11 @@ class AdminController extends Controller
             'employee' => $employee
         ]);
     }
-  
+
     public function updateEmployee(Request $request, $id)
     {
          $request->validate([
-       
+
             'government_entity_id' => 'sometimes|exists:government_entities,entity_id'
         ]);
 
@@ -131,6 +131,16 @@ class AdminController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Employee deleted successfully.'
+        ]);
+    }
+
+    public function indexGovernment()
+    {
+        $governments = GovernmentEntity::get();
+
+        return response()->json([
+            'status' => true,
+            'governments' => $governments
         ]);
     }
 }

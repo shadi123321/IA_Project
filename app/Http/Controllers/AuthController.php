@@ -91,6 +91,7 @@ public function login(LoginRequest $request)
                 'token' => $result['token'],
                 'expires_in' => $result['expires_in'],
                 'user_id' => $result['user']->id,
+                'role' => $result['user']->getRoleNames()->first()
             ], 200);
 
         default:
