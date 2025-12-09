@@ -222,16 +222,14 @@ public function myComplaints()
     return response()->json($complaints);
 }
 
-public function myComplaintsAtt()
+public function myComplaintsAtt($id)
 {
     $userId = auth('api')->id();
     if (!$userId) {
         return response()->json(['message' => 'Unauthenticated'], 401);
     }
 
-    $attachments = ComplaintAttachment::whereHas('complaint', function ($q) {
-        $q->where('user_id', auth('api')->id());
-    })->get();
+    $attachments = ComplaintAttachment::where('complaint_id', $id)->get();
 
     foreach($attachments as $attachment)
     {
@@ -243,9 +241,9 @@ public function myComplaintsAtt()
     ]);
 }
 
-public function show($reference_number)
+public function show($id)
 {
-    $complaint = Complaint::where('reference_number', $reference_number)
+    $complaint = Complaint::where('complaint_id', $id)
         ->with(['histories' => function($query) {
             $query->orderBy('changed_at', 'asc');
         }])
@@ -254,11 +252,9 @@ public function show($reference_number)
     return response()->json($complaint);
 }
 
-public function showAtt($reference)
+public function showAtt($id)
 {
-    $attachments = ComplaintAttachment::whereHas('complaint', function ($q) use ($reference) {
-        $q->where('reference_number', $reference);
-    })->get();
+    $attachments = ComplaintAttachment::where('complaint_id', $id)->get();
 
     foreach ($attachments as $attachment) {
         $attachment->file_path = Storage::url($attachment->file_path);
@@ -269,13 +265,13 @@ public function showAtt($reference)
     ]);
 }
 
-public function addAttachment(Request $request, $reference)
+public function addAttachment(Request $request, $id)
 {
     $request->validate([
         'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx,mp4,avi,mov|max:10240'
     ]);
 
-    $complaint = Complaint::where('reference_number', $reference)->firstOrFail();
+    $complaint = Complaint::where('complaint_id', $id)->firstOrFail();
 
     if ($request->hasFile('attachments')) {
         foreach ($request->file('attachments') as $file) {

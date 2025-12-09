@@ -25,10 +25,10 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 
         Route::post('/submitComplaint', [UserController::class, 'SubmitComplaint']);
         Route::get('/myComplaints', [UserController::class, 'myComplaints']);
-        Route::get('/myComplaintsAtt', [UserController::class, 'myComplaintsAtt']);
-        Route::get('/show/{refernce}', [UserController::class, 'show']);
-        Route::get('/showAtt/{refernce}', [UserController::class, 'showAtt']);
-        Route::post('/addAttachment/{refernce}', [UserController::class, 'addAttachment']);
+        Route::get('/myComplaintsAtt/{id}', [UserController::class, 'myComplaintsAtt']);
+        Route::get('/show/{id}', [UserController::class, 'show']);
+        Route::get('/showAtt/{id}', [UserController::class, 'showAtt']);
+        Route::post('/addAttachment/{id}', [UserController::class, 'addAttachment']);
 
         Route::get('/getRole', [UserController::class, 'getRole']);
 
