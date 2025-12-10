@@ -12,11 +12,11 @@ public function getNotifications(Request $request)
 {
     $user = Auth::user();
 
-    $notifications = $user->notifications()->orderBy('created_at', 'desc')->get();
+    //$notifications = $user->notifications()->orderBy('created_at', 'desc')->get();
 
     return response()->json([
         'status' => true,
-        'notifications' => $notifications
+     //   'notifications' => $notifications
     ]);
 }
 }

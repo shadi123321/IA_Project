@@ -1,0 +1,572 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "My Laravel API",
+        "description": "API Documentation with Swagger",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Local API server"
+        }
+    ],
+    "paths": {
+        "/storeEmployee": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Create a new employee",
+                "description": "Create employee under government entity",
+                "operationId": "4c53fa3e69a1ffb0bcc57818bb915795",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "government_entity_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmad Ali"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "ahmad@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "secret123"
+                                    },
+                                    "government_entity_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Employee created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/indexEmployees": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List all employees for a government entity",
+                "operationId": "0151e4315e0600382b8d896c8eb49f82",
+                "parameters": [
+                    {
+                        "name": "government_entity_id",
+                        "in": "query",
+                        "description": "Government entity ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employees list returned successfully"
+                    },
+                    "422": {
+                        "description": "Invalid request"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/showEmployee/{id}": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get employee details",
+                "operationId": "f86f517f4ca5760ec7094169723016c7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Employee ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employee details returned"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/updateEmployee/{id}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update employee information",
+                "operationId": "72a5173dd2f7172f6bb3d04233d6f575",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Employee ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Updated Name"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "newmail@example.com"
+                                    },
+                                    "government_entity_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Employee updated successfully"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/deleteEmployee/{id}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Delete an employee",
+                "operationId": "95d90df8d62f4b3e2a899765289a5641",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Employee ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employee deleted successfully"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/changeStatus": {
+            "put": {
+                "tags": [
+                    "EMPLOYEE"
+                ],
+                "summary": "Change complaint status",
+                "description": "Allows an employee to change the status of a complaint according to allowed transitions.",
+                "operationId": "c003ba8a8a42d34031956fff5101d013",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reference_number",
+                                    "status",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "reference_number": {
+                                        "description": "Unique reference number of the complaint",
+                                        "type": "string",
+                                        "example": "CMP12345"
+                                    },
+                                    "status": {
+                                        "description": "New status for the complaint",
+                                        "type": "string",
+                                        "enum": [
+                                            "new",
+                                            "processing",
+                                            "resolved",
+                                            "rejected"
+                                        ],
+                                        "example": "processing"
+                                    },
+                                    "note": {
+                                        "description": "Optional note for status change",
+                                        "type": "string",
+                                        "example": "Reviewed by admin"
+                                    },
+                                    "user_id": {
+                                        "description": "ID of the employee performing the action",
+                                        "type": "integer",
+                                        "example": 7
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status changed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Status changed successfully"
+                                        },
+                                        "complain": {
+                                            "description": "Updated complaint object",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error or locked complaint",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Complaint is locked by John. Try again after 10 minutes."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed (invalid input data)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/showComplaint/{reference_number}": {
+            "get": {
+                "tags": [
+                    "EMPLOYEE"
+                ],
+                "summary": "Get detailed complaint information",
+                "description": "Retrieve a complaint by reference number along with its full history and the employees who handled it.",
+                "operationId": "30c3d195eec0e0d4b273050d918aad77",
+                "parameters": [
+                    {
+                        "name": "reference_number",
+                        "in": "path",
+                        "description": "Unique reference number of the complaint",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "CMP12345"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Complaint details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "complain": {
+                                            "properties": {
+                                                "reference_number": {
+                                                    "type": "string",
+                                                    "example": "CMP12345"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "processing"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Complaint description"
+                                                },
+                                                "location": {
+                                                    "type": "string",
+                                                    "example": "Building A"
+                                                },
+                                                "histories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "new"
+                                                            },
+                                                            "note": {
+                                                                "type": "string",
+                                                                "example": "Initial review"
+                                                            },
+                                                            "changed_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2025-12-09T14:00:00Z"
+                                                            },
+                                                            "handled_by": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 7
+                                                                    },
+                                                                    "employee": {
+                                                                        "type": "string",
+                                                                        "example": "Ahmad Ali"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Complaint not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Complaint not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/indexByEntity": {
+            "get": {
+                "tags": [
+                    "EMPLOYEE"
+                ],
+                "summary": "List complaints by user's government entity",
+                "description": "Retrieve all complaints related to the government entity of a given user.",
+                "operationId": "6f18c172bd27f0fca2e00b1f08890b5e",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "query",
+                        "description": "ID of the user whose government entity complaints should be retrieved",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 7
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Complaints retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "sector": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "reference_number": {
+                                                        "type": "string",
+                                                        "example": "CMP12345"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "processing"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Complaint description"
+                                                    },
+                                                    "location": {
+                                                        "type": "string",
+                                                        "example": "Building A"
+                                                    },
+                                                    "government_entity_id": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin",
+            "description": "Admin related operations"
+        },
+        {
+            "name": "EMPLOYEE",
+            "description": "EMPLOYEE"
+        }
+    ]
+}

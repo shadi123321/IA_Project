@@ -5,6 +5,12 @@ use App\Repositories\ComplaintRepository;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\ComplaintStatusUpdatedFcm;
+use Illuminate\Support\Facades\Log;
+
+
+ 
+ use App\Notifications\ComplaintStatusUpdated;
 
 class ComplaintService
 {
@@ -51,7 +57,23 @@ if ($lastHistory) {
             // تحديث الحالة وحفظ التاريخ
             $this->complaintRepo->updateStatus($complain, $data['status']);
             $this->complaintRepo->saveHistory($complain, $data['user_id'], $data['status'], $data['note'] ?? null);
+        
+if ($complain->user && $complain->user->getFcmToken()) {
 
+    Log::info('Sending FCM Notification', [
+        'user_id' => $complain->user->id,
+        'reference_number' => $complain->reference_number,
+        'new_status' => $complain->status
+    ]);
+
+    $complain->user->notify(new ComplaintStatusUpdatedFcm($complain));
+
+    Log::info('FCM Notification Sent Successfully', [
+        'user_id' => $complain->user->id,
+        'reference_number' => $complain->reference_number,
+        'new_status' => $complain->status
+    ]);
+}
             return $complain;
         });
     }
