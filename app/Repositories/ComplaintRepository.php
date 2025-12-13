@@ -2,6 +2,7 @@
 namespace App\Repositories;
 
 use App\Models\Complaint;
+use Google\Service\ServiceControl\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ComplaintRepository
@@ -12,16 +13,16 @@ class ComplaintRepository
                         ->lockForUpdate()
                         ->first();
     }
+public function saveHistory($complaint, $userId, $status, $note = null)
+{
+    return $complaint->histories()->create([
+        'handled_by' => $userId,
+        'status'     => $status,
+        'note'       => $note ?? ('changing status to ' . $status),
+        'changed_at' => now(),
+    ]);
+}
 
-    public function saveHistory($complaint, $userId, $status, $note = null)
-    {
-        return $complaint->histories()->create([
-            'handled_by' => $userId,
-            'status'     => $status,
-            'note'       => $note,
-            'changed_at' => now(),
-        ]);
-    }
 
     public function updateStatus($complaint, $status)
     {

@@ -5,6 +5,7 @@ use App\Repositories\ComplaintRepository;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ComplaintService
 {
@@ -20,6 +21,7 @@ class ComplaintService
     {
         return DB::transaction(function () use ($data) {
 
+            // جلب الشكوى مع قفل للسجل
             $complain = $this->complaintRepo->findByReferenceForUpdate($data['reference_number']);
 
             if (!$complain) {
@@ -31,26 +33,33 @@ class ComplaintService
                 throw new Exception("This complaint is already closed and cannot be modified.");
             }
 
-        $lastHistory = $complain->histories()->orderBy('changed_at', 'desc')->first();
-if ($lastHistory) {
-    $minutesPassed = Carbon::parse($lastHistory->changed_at)->diffInMinutes(now());
-    $remaining = max($this->lockMinutes - $minutesPassed, 0);
+            // تحديد الموظف الحالي من التوكن
+            $userId = Auth::id();
 
-    // لا تمنع نفس الموظف من التعديل
-    if ($lastHistory->handled_by != $data['user_id'] && $remaining > 0) {
-        $employeeName = $lastHistory->handledBy ? $lastHistory->handledBy->name : 'Unknown';
-        throw new Exception("Complaint is locked by {$employeeName}. Try again after {$remaining} minutes.");
-    }
-}
+            // التحقق من قفل التعديل حسب آخر سجل
+            $lastHistory = $complain->histories()->orderBy('changed_at', 'desc')->first();
+            if ($lastHistory) {
+                $minutesPassed = Carbon::parse($lastHistory->changed_at)->diffInMinutes(now());
+                $remaining = max($this->lockMinutes - $minutesPassed, 0);
 
-
+                // لا تمنع نفس الموظف من التعديل
+                if ($lastHistory->handled_by != $userId && $remaining > 0) {
+                    $employeeName = $lastHistory->handledBy ? $lastHistory->handledBy->name : 'Unknown';
+                    throw new Exception("Complaint is locked by {$employeeName}. Try again after {$remaining} minutes.");
+                }
+            }
 
             // تحقق من منطق الانتقال بين الحالات
             $this->validateStatusTransition($complain->status, $data['status']);
 
             // تحديث الحالة وحفظ التاريخ
             $this->complaintRepo->updateStatus($complain, $data['status']);
-            $this->complaintRepo->saveHistory($complain, $data['user_id'], $data['status'], $data['note'] ?? null);
+            $this->complaintRepo->saveHistory(
+                $complain,
+                $userId,                 // ✅ الموظف الحالي من Auth
+                $data['status'],
+                $data['note'] ?? null
+            );
 
             return $complain;
         });

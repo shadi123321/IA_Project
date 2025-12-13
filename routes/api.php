@@ -47,13 +47,20 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/complaints', [UserController::class, 'complaints']);
         Route::put('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
+               Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
+               Route::get('/statistics', [AdminController::class, 'statistics']);
+
+
     });
 
  ////////employee mmiddleware
     Route::middleware([JwtMiddleware::class,'role:employee'])->group(function () {
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
+     Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
+
         Route::put('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
+
     });
 
 

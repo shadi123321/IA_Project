@@ -7,6 +7,17 @@ use Illuminate\Http\Request;
 use App\Models\GovernmentEntity;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Complaint;
+use App\Models\ComplaintStatusHistory;
+use App\Http\Requests\StoreComplaintNoteRequest;
+use Illuminate\Support\Facades\DB;
+
+
+
+
+use function Symfony\Component\Clock\now;
+
 class AdminController extends Controller
 {
 
@@ -24,7 +35,7 @@ class AdminController extends Controller
             'name'              => $request->name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
-            'email_verified_at' => null, // غير مفعّل
+            'email_verified_at' => now(), // غير مفعّل
             'government_entity_id' => $request->government_entity_id,
         ]);
 
@@ -143,5 +154,63 @@ class AdminController extends Controller
             'governments' => $governments
         ]);
     }
+ 
+   public function MonitoringComplains()
+{
+    $data = DB::table('complaint_status_histories as h')
+        ->join('complaints as c', 'h.complaint_id', '=', 'c.complaint_id')
+        ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
+        ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
+
+        ->select([
+            'c.reference_number',
+            'citizen.name as citizen_name',
+            'h.status',
+            'h.note',
+            'employee.name as handled_by_employee',
+            'h.changed_at',
+        ])
+
+        ->orderBy('h.changed_at', 'desc')
+        ->get();
+
+    return response()->json([
+        'data' => $data
+    ]);
 }
+
+    public function statistics()
+    {
+        // عدد الشكاوى حسب الحالة (Query واحد فقط)
+        $complaintsByStatus = Complaint::selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+$employeesCount = User::role('employee')->count(); // = 0
+
+
+
+        return response()->json([
+            'complaints' => [
+                'total'      => $complaintsByStatus->sum(),
+                'new'        => $complaintsByStatus['new'] ?? 0,
+                'processing' => $complaintsByStatus['processing'] ?? 0,
+                'resolved'   => $complaintsByStatus['resolved'] ?? 0,
+                'rejected'   => $complaintsByStatus['rejected'] ?? 0,
+                'Employee_Count'=>$employeesCount,
+            ],
+
+        ]);
+    }
+
+}
+
+
+/////////////
+ /*
+    $request->validate([
+        'reference_number' => 'required|exists:complaints,reference_number',
+    ]);
+ */
+
+
 

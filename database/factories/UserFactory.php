@@ -41,4 +41,15 @@ class UserFactory extends Factory
             return ['status' => 2];
         });
     }
+    public function configure()
+{
+    return $this->afterCreating(function ($user) {
+        if ($user->status == 1) {
+            $user->assignRole('employee');
+        } else {
+            $user->assignRole('citizen');
+        }
+    });
+}
+
 }

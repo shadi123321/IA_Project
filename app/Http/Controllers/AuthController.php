@@ -79,9 +79,11 @@ public function login(LoginRequest $request)
 
         case 'email_not_verified':
             return response()->json([
-                'message' => 'Email not verified. Verification code sent.',
+                'message' => 'The first Login_Email not verified.it will verify.',
                 'user_id' => $result['user']->id,
                 'token' => $result['token'],
+                            'government_entity'=>$result['user']->governmentEntity,
+
                 'expires_in' => $result['expires_in'],
             ], 200);
 
@@ -91,6 +93,9 @@ public function login(LoginRequest $request)
                 'token' => $result['token'],
                 'expires_in' => $result['expires_in'],
                 'user_id' => $result['user']->id,
+             'user_id' => $result['user']->id,
+            'government_entity'=>$result['user']->governmentEntity,
+
                 'role' => $result['user']->getRoleNames()->first()
             ], 200);
 
@@ -144,17 +149,19 @@ public function login(LoginRequest $request)
         $user = Auth::user();
         JWTAuth::invalidate(JWTAuth::getToken());
 
-        // إذا أردت تعطيل الحساب عند logout، فقط ضع email_verified_at = null
-        /*if ($user) {
+        if ($user) {
             $user->email_verified_at = null;
-            $user->status=0;
             $user->save();
-        }*/
+        }
     } catch (JWTException $e) {
         return response()->json(['error' => 'Failed to logout, please try again'], 500);
     }
 
-    return response()->json(['message' => 'Successfully logged out']);
+    return response()->json(['message' => 'Successfully logged out',
+    'role'=>$user->getRoleNames()->first()
+
+
+]);
 }
 
 

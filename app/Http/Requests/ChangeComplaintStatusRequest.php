@@ -17,7 +17,7 @@ class ChangeComplaintStatusRequest extends FormRequest
             'reference_number' => 'required|exists:complaints,reference_number',
             'status'           => 'required|in:processing,new,resolved,rejected',
             'note'             => 'nullable|string',
-            'user_id'          => 'required|exists:users,id'
+         //   'user_id'          => 'required|exists:users,id'
         ];
       
     }

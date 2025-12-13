@@ -85,11 +85,16 @@ class AuthService
 
         $token = JWTAuth::fromUser($user);
 
-        $this->verification->sendCode($user);
+      //  $this->verification->sendCode($user);
+        
+          $user->email_verified_at = now();
+     $user->save();
+        
 
         return [
             'status' => 'email_not_verified',
             'user' => $user,
+            'government_entity'=>$user->governmentEntity,
             'token' => $token,
             'expires_in' => auth('api')->factory()->getTTL() * 600
         ];
@@ -105,6 +110,7 @@ class AuthService
     return [
         'status' => 'success',
         'user' => $user,
+      'government_entity'=>$user->governmentEntity,
         'token' => $token,
         'expires_in' => auth('api')->factory()->getTTL() * 600
     ];

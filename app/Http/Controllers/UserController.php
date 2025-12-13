@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 use Carbon\Carbon;
+
+ use App\Http\Requests\StoreComplaintNoteRequest;
+use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Http\Request;
 use App\Models\Complaint;
 use App\Notifications\ComplaintStatusUpdated;
@@ -12,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Promise\Create;
 use App\Services\ComplaintService;
+
 use App\Http\Requests\ChangeComplaintStatusRequest;
 class UserController extends Controller
 {
@@ -95,30 +100,33 @@ public function indexByEntity(Request $request)
     ]);
 }
 
+
 public function changeStatus(ChangeComplaintStatusRequest $request)
+{
+    try {
+        $complain = $this->statusService->changeStatus(
+            $request->validated()
+        );
 
-    {
-        try {
-            $complain = $this->statusService->changeStatus($request->validated());
+        return response()->json([
+            'status'   => true,
+            'message'  => "Status changed successfully",
+            'complain' => $complain
+        ], 200);
 
-            return response()->json([
-                'status'   => true,
-                'message'  => "Status changed successfully",
-                'complain' => $complain
-            ], 200);
-
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'status'  => false,
-                'message' => $e->getMessage()
-            ], 400);
-        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => $e->getMessage()
+        ], 400);
     }
+}
 
 public function employeeComplaints()
 {
     $user = auth()->user();
+
+
 
     $complaints = Complaint::where('government_entity_id', $user->government_entity_id)
         ->with('user')
@@ -298,5 +306,28 @@ public function addAttachment(Request $request, $id)
         'message'     => 'Attachments added successfully'
     ]);
 }
+public function EmployeeAddNote(StoreComplaintNoteRequest $request)
+{
+    $employee = Auth::user();
 
+    // جلب الشكوى باستخدام reference_number
+    $complaint = Complaint::where(
+        'reference_number',
+        $request->reference_number
+    )->firstOrFail();
+
+    // إضافة الملاحظة في جدول history
+    $history = ComplaintStatusHistory::create([
+        'complaint_id' => $complaint->complaint_id,
+        'handled_by'   => $employee->id,
+        'note'         => $request->note,
+        'changed_at'   => now(),
+    ]);
+
+    return response()->json([
+        'message' => 'Note added successfully',
+      'handled_by'   => "Empolyee:".$employee->name,
+        'data'    => $history->note,
+    ], 201);
+}
 }
