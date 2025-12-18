@@ -21,7 +21,9 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
     });
 
  ////////citizen mmiddleware
-    Route::middleware([JwtMiddleware::class, 'role:citizen'])->group(function () {
+  /*, 'throttle:60,1' =1request per minute*/
+
+    Route::middleware([JwtMiddleware::class, 'role:citizen'/*, 'throttle:60,1' */])->group(function () {
 
         Route::post('/submitComplaint', [UserController::class, 'SubmitComplaint']);
         Route::get('/myComplaints', [UserController::class, 'myComplaints']);
@@ -34,7 +36,9 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 
   });
  ////////admin mmiddleware
-    Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
+  /*, 'throttle:60,1' =1request per minute*/
+
+    Route::middleware([JwtMiddleware::class,'role:admin'/*, 'throttle:60,1' */])->group(function () {
 
         Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
         Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
@@ -50,11 +54,13 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
                Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
                Route::get('/statistics', [AdminController::class, 'statistics']);
 
+               Route::post('/search', [AdminController::class, 'search']);
 
     });
 
  ////////employee mmiddleware
-    Route::middleware([JwtMiddleware::class,'role:employee'])->group(function () {
+ /*, 'throttle:60,1' =1request per minute*/
+    Route::middleware([JwtMiddleware::class,'role:employee'/*, 'throttle:60,1' */])->group(function () {
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
      Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
@@ -62,5 +68,6 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
     });
+      // Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
 

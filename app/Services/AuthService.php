@@ -6,81 +6,98 @@ use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use \App\Services\VerificationService;
 use App\Services\EmailVerificationService;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 
 class AuthService
 {
-    protected $verification;
+    protected EmailVerificationService $verification;
 
     public function __construct(EmailVerificationService $verification)
     {
         $this->verification = $verification;
     }
 
-    public function registerUser($data)
-{
-    // إنشاء المستخدم
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password']),
-        'email_verified_at' => null,
-    ]);
-    $user->assignRole('citizen');
+    /* =========================
+       Register Citizen
+    ========================== */
+    public function registerUser(array $data): array
+    {
+        $user = User::create([
+            'name'              => $data['name'],
+            'email'             => $data['email'],
+            'password'          => Hash::make($data['password']),
+            'email_verified_at' => null,
+        ]);
 
-    // إرسال كود التحقق
-    $this->verification->sendCode($user);
+        $user->assignRole('citizen');
 
-    // إنشاء JWT Token
-    try {
-        $token = JWTAuth::fromUser($user);
-    } catch (JWTException $e) {
-        throw new \Exception("Could not create token");
-    }
+        // Send verification code
+        $this->verification->sendCode($user);
 
-    return [
-        'user' => $user,
-        'token' => $token
-    ];
-}
+        try {
+            $token = JWTAuth::fromUser($user);
+        } catch (JWTException $e) {
+            throw new \Exception('Could not create token');
+        }
 
-    public function loginUser($data)
-{
-    $email = trim($data['email']);
-
-     $password = $data['password'];
-
-    $key = 'login-attempts:' . $email;
-    $maxAttempts = 5;
-    $decaySeconds = 15 * 60;
-
-    // Rate Limiter
-    if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
-        $seconds = RateLimiter::availableIn($key);
         return [
-            'status' => 'rate_limited',
-            'seconds' => $seconds
+            'user'  => $user,
+            'token' => $token
         ];
     }
 
-    // جلب المستخدم
-    $user = User::where('email', $email)->first();
+    /* =========================
+       Login User
+    ========================== */
+    public function loginUser(array $data): array
+    {
+        $email    = trim($data['email']);
+        $password = $data['password'];
 
-    if (!$user || !Hash::check($password, $user->password)) {
-        RateLimiter::hit($key, $decaySeconds);
+        $rateKey       = 'login-attempts:' . $email;
+        $maxAttempts   = 5;
+        $decaySeconds  = 15 * 60;
 
-        return [
-            'status' => 'invalid_credentials',
-            'attempts_left' => $maxAttempts - RateLimiter::attempts($key)
-        ];
-    }
+        /* ---------- Rate Limiter ---------- */
+        if (RateLimiter::tooManyAttempts($rateKey, $maxAttempts)) {
+            return [
+                'status'  => 'rate_limited',
+                'seconds' => RateLimiter::availableIn($rateKey)
+            ];
+        }
 
-    // Clear rate limiter
-    RateLimiter::clear($key);
+        /* ---------- Cache User ---------- */
+        $cacheKey = "auth:user:{$email}";
 
-    // إرسال كود التفعيل لو الايميل غير مفعل
+        $user = Cache::remember($cacheKey, 300, function () use ($email) {
+            return User::with('governmentEntity')
+                ->where('email', $email)
+                ->select(
+                    'id',
+                    'name',
+                    'email',
+                    'password',
+                    'email_verified_at',
+                    'status',
+                    'government_entity_id'
+                )
+                ->first();
+        });
+
+        if (!$user || !Hash::check($password, $user->password)) {
+            RateLimiter::hit($rateKey, $decaySeconds);
+
+            return [
+                'status'         => 'invalid_credentials',
+                'attempts_left'  => max(0, $maxAttempts - RateLimiter::attempts($rateKey))
+            ];
+        }
+
+        RateLimiter::clear($rateKey);
+
+       // إرسال كود التفعيل لو الايميل غير مفعل
     if (is_null($user->email_verified_at)/*||$user->status==0*/) {
 
         $token = JWTAuth::fromUser($user);
@@ -90,58 +107,34 @@ class AuthService
           $user->email_verified_at = now();
      $user->save();
         
+            try {
+                $token = JWTAuth::fromUser($user);
+            } catch (JWTException $e) {
+                throw new \Exception('Could not create token');
+            }
+
+            return [
+                'status'            => 'email_not_verified',
+                'user'              => $user,
+                'government_entity' => $user->governmentEntity,
+                'token'             => $token,
+                'expires_in'        => auth('api')->factory()->getTTL() * 600
+            ];
+        }
+
+        /* ---------- Normal Login ---------- */
+        try {
+            $token = JWTAuth::fromUser($user);
+        } catch (JWTException $e) {
+            throw new \Exception('Could not create token');
+        }
 
         return [
-            'status' => 'email_not_verified',
-            'user' => $user,
-            'government_entity'=>$user->governmentEntity,
-            'token' => $token,
-            'expires_in' => auth('api')->factory()->getTTL() * 600
+            'status'            => 'success',
+            'user'              => $user,
+            'government_entity' => $user->governmentEntity,
+            'token'             => $token,
+            'expires_in'        => auth('api')->factory()->getTTL() * 600
         ];
     }
-
-    // لو الايميل مفعل → اعمل login طبيعي
-    try {
-        $token = JWTAuth::fromUser($user);
-    } catch (JWTException $e) {
-        throw new \Exception("Could not create token");
-    }
-
-    return [
-        'status' => 'success',
-        'user' => $user,
-      'government_entity'=>$user->governmentEntity,
-        'token' => $token,
-        'expires_in' => auth('api')->factory()->getTTL() * 600
-    ];
-}
-/*
-public function registerEmployee($data)
-{
-    // إنشاء المستخدم
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password']),
-        'email_verified_at' => now(),
-        'status'=>1, // يمكن مباشرة تفعيل البريد للموظف
-        'government_entity_id' => $data['government_entity_id'] ?? null,
-    ]);
-
-    $user->assignRole('employee');  // تعيين دور الموظف
-
-    // إنشاء JWT Token
-    try {
-        $token = JWTAuth::fromUser($user);
-    } catch (JWTException $e) {
-        throw new \Exception("Could not create token");
-    }
-
-    return [
-        'user' => $user,
-        'token' => $token
-    ];
-}
-    */
-
 }

@@ -5,7 +5,6 @@ use Carbon\Carbon;
 
  use App\Http\Requests\StoreComplaintNoteRequest;
 use Illuminate\Support\Facades\Auth;
-
 use Illuminate\Http\Request;
 use App\Models\Complaint;
 use App\Notifications\ComplaintStatusUpdated;

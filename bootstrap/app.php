@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\JwtMiddleware; // لاحظ حرف A كبير في App
 use Spatie\Permission\Middleware\RoleMiddleware;
+//use \Illuminate\Routing\Middleware\ThrottleRequests;
 use Spatie\Permission\Middlewares\PermissionMiddleware;
 use Spatie\Permission\Middlewares\RoleOrPermissionMiddleware;
 
@@ -19,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
          $middleware->alias([
             'jwt' => JwtMiddleware::class,
       'role' =>  RoleMiddleware::class,
+         // 'throttle' =>ThrottleRequests::class,
+
              //     'permission' => PermissionMiddleware::class,
                 //  'role_or_permission' => RoleOrPermissionMiddleware::class,
 
