@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use PDF;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\GovernmentEntity;
@@ -11,8 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Complaint;
 use App\Models\ComplaintStatusHistory;
 use App\Http\Requests\StoreComplaintNoteRequest;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+ use Illuminate\Support\Facades\Cache;
 
 
 
@@ -258,7 +259,35 @@ public function search(Request $request)
         'data' => $result
     ]);
 }
+public function MonitoringComplainsDailyPDF(Request $request)
+{
+    $date = $request->date
+        ? Carbon::parse($request->date)->toDateString()
+        : Carbon::today()->toDateString();
 
+    $data = DB::table('complaint_status_histories as h')
+        ->join('complaints as c', 'h.complaint_id', '=', 'c.complaint_id')
+        ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
+        ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
+        ->whereDate('h.changed_at', $date)
+        ->select([
+            'c.reference_number',
+            'citizen.name as citizen_name',
+            'h.status',
+            'h.note',
+            'employee.name as handled_by_employee',
+            'h.changed_at',
+        ])
+        ->orderByDesc('h.changed_at')
+        ->get();
+
+    $pdf = PDF::loadView('pdf.monitoring_daily', [
+        'data' => $data,
+        'date' => $date
+    ]);
+
+    return $pdf->download("monitoring_report_$date.pdf");
+}
 }
 
 

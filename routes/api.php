@@ -56,6 +56,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 
                Route::post('/search', [AdminController::class, 'search']);
 
+
     });
 
  ////////employee mmiddleware
@@ -70,4 +71,5 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
     });
       // Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
+               Route::get('/reports/complaints/daily/pdf', [AdminController::class, 'MonitoringComplainsDailyPDF']);
 
