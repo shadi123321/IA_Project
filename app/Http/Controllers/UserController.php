@@ -75,11 +75,9 @@ public function showComplaint($reference_number)//Request $request)
         ]
     ], 200);
 }
-
 public function indexByEntity(Request $request)
 {
-    // جلب الـ user من الـ body مباشرة (لتجريب فقط)
-    $user = User::find($request->user);
+    $user = User::with('governmentEntity')->find($request->user);
 
     if (!$user) {
         return response()->json([
@@ -88,16 +86,29 @@ public function indexByEntity(Request $request)
         ], 404);
     }
 
-    // جلب الشكاوى حسب جهة المستخدم
-    $complaints = Complaint::where('government_entity_id', $user->government_entity_id)
-        ->get();
+ 
+    $complaints = Complaint::with('governmentEntity')
+        ->where('government_entity_id', $user->government_entity_id)
+        ->orderByDesc('created_at')
+        ->paginate(20);
 
     return response()->json([
         'status' => 'success',
-        'sector'=>$user->government_entity_id,
-        'data' => $complaints
+        
+             'name' => $user->governmentEntity->name ?? null,
+        
+        'data' => $complaints->through(function ($complaint) {
+            return [
+                'complaint_id' => $complaint->complaint_id,
+                'title'        => $complaint->title ?? null,
+                'description'  => $complaint->description ?? null,
+                'government_entity' => $complaint->governmentEntity->name ?? null,
+                'created_at'   => $complaint->created_at,
+            ];
+        })
     ]);
 }
+
 
 
 public function changeStatus(ChangeComplaintStatusRequest $request)

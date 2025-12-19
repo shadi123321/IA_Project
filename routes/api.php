@@ -55,6 +55,12 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
                Route::get('/statistics', [AdminController::class, 'statistics']);
 
                Route::post('/search', [AdminController::class, 'search']);
+               ////////////////////
+                       Route::delete('/deleteGovernmentEntity/{id}', [AdminController::class, 'deleteGovernmentEntity']);
+               Route::post('/addGovernmentEntity', [AdminController::class, 'addGovernmentEntity']);
+
+               Route::get('/reports/complaints/daily/pdf', [AdminController::class, 'MonitoringComplainsDailyPDF']);
+
 
 
     });
@@ -71,5 +77,4 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
     });
       // Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
-               Route::get('/reports/complaints/daily/pdf', [AdminController::class, 'MonitoringComplainsDailyPDF']);
 

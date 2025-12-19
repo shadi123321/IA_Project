@@ -14,8 +14,7 @@ use App\Models\Complaint;
 use App\Models\ComplaintStatusHistory;
 use App\Http\Requests\StoreComplaintNoteRequest;
  use Illuminate\Support\Facades\Cache;
-
-
+use Illuminate\Support\Facades\Validator; // <- هنا
 
 
 
@@ -164,27 +163,83 @@ class AdminController extends Controller
         ]);
     }
  
- public function MonitoringComplains()
-    {
-        $data = Cache::remember('complaints:monitoring', 300, function () {
-            return DB::table('complaint_status_histories as h')
-                ->join('complaints as c', 'h.complaint_id', '=', 'c.complaint_id')
-                ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
-                ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
-                ->select([
-                    'c.reference_number',
-                    'citizen.name as citizen_name',
-                    'h.status',
-                    'h.note',
-                    'employee.name as handled_by_employee',
-                    'h.changed_at',
-                ])
-                ->orderByDesc('h.changed_at')
-                ->get();
-        });
+    public function addGovernmentEntity(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'location' => 'nullable|string|max:255',
+        'contact_email' => 'nullable|email|max:255',
+        'contact_phone' => 'nullable|string|max:50',
+    ]);
 
-        return response()->json(['data' => $data]);
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    // التحقق إن كانت الجهة موجودة مسبقًا بنفس الاسم
+    $existing = GovernmentEntity::where('name', $request->name)->first();
+    if ($existing) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Government entity already exists'
+        ], 409); // 409 = Conflict
+    }
+
+    $entity = GovernmentEntity::create($request->all());
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $entity
+    ], 201);
+}
+public function deleteGovernmentEntity($id)
+{
+    $entity = GovernmentEntity::find($id);
+
+    if (!$entity) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Government entity not found'
+        ], 404);
+    }
+
+    $entity->delete();
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Government entity deleted successfully',
+        'entity'=>$entity
+    ]);
+}
+
+ public function MonitoringComplains(Request $request)
+{
+    $perPage = 20; // عدد العناصر لكل صفحة
+    $page = $request->get('page', 1); // الصفحة الحالية من الـ query parameter
+
+    $data = Cache::remember("complaints:monitoring:page_$page", 300, function () use ($perPage) {
+        return DB::table('complaint_status_histories as h')
+            ->join('complaints as c', 'h.complaint_id', '=', 'c.complaint_id')
+            ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
+            ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
+            ->select([
+                'c.reference_number',
+                'citizen.name as citizen_name',
+                'h.status',
+                'h.note',
+                'employee.name as handled_by_employee',
+                'h.changed_at',
+            ])
+            ->orderByDesc('h.changed_at')
+            ->paginate($perPage);
+    });
+
+    return response()->json($data);
+}
 
 
    public function statistics()
@@ -212,14 +267,16 @@ public function search(Request $request)
 {
     $search = trim($request->Key_Search);
 
+    
     // إذا كان البحث فارغًا
+    /*
     if (!$search) {
         return response()->json([
             'message' => 'Key_Search is required',
             'data' => []
         ], 422);
     }
-
+*/
     $page = $request->get('page', 1); // Pagination page
     $reference = str_replace('CMP-', '', $search);
 
