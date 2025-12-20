@@ -7,6 +7,7 @@ use App\Http\Middleware\JwtMiddleware; // لاحظ حرف A كبير في App
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middlewares\PermissionMiddleware;
 use Spatie\Permission\Middlewares\RoleOrPermissionMiddleware;
+use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,9 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
 
 
-         
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        $schedule->command('backup:run')->dailyAt('01:51');
     })->create();
