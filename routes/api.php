@@ -31,6 +31,8 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/show/{id}', [UserController::class, 'show']);
         Route::get('/showAtt/{id}', [UserController::class, 'showAtt']);
         Route::post('/addAttachment/{id}', [UserController::class, 'addAttachment']);
+        Route::get('/search', [UserController::class, 'search']);
+        Route::get('/government_entities', [UserController::class, 'indexGovernment']);
 
         Route::get('/getRole', [UserController::class, 'getRole']);
 

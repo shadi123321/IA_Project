@@ -244,8 +244,10 @@ public function SubmitComplaint(Request $request)
 
 public function myComplaints()
 {
-    $complaints = Complaint::where('user_id', auth('api')->id())->get();
+    $complaints = Complaint::where('user_id', auth('api')->id())->paginate(10);
 
+    // complaint resource doesn't work beacue attachments are not required
+    // they are in separate function and endpoint
     return response()->json($complaints);
 }
 
@@ -349,4 +351,43 @@ public function EmployeeAddNote(StoreComplaintNoteRequest $request)
         'data'    => $history->note,
     ], 201);
 }
+
+    public function search(Request $request)
+    {
+        $reference = $request->get('reference_number');
+
+        $complaint = Complaint::where('reference_number', $reference)
+                              ->first();
+
+        $user = auth('api')->user();
+        if($complaint->user_id != $user->id)
+        {
+            return response()->json([
+                'message' => 'This reference does not belong to your complaints'
+            ], 403);
+
+        }
+
+        if (!$complaint) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Complaint not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'complaint' => new ComplaintResource($complaint)
+        ]);
+    }
+
+    public function indexGovernment()
+    {
+        $governments = GovernmentEntity::get();
+
+        return response()->json([
+            'status' => true,
+            'governments' => $governments
+        ]);
+    }
 }
