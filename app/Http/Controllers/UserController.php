@@ -15,8 +15,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Promise\Create;
 use App\Services\ComplaintService;
-
+use App\Http\Resources\ComplaintResource;
 use App\Http\Requests\ChangeComplaintStatusRequest;
+use App\Models\GovernmentEntity;
+
 class UserController extends Controller
 {
      private $statusService;
@@ -75,9 +77,9 @@ public function showComplaint($reference_number)//Request $request)
         ]
     ], 200);
 }
-public function indexByEntity(Request $request)
+public function indexByEntity()
 {
-    $user = User::with('governmentEntity')->find($request->user);
+    $user = auth('api')->user();
 
     if (!$user) {
         return response()->json([
@@ -86,26 +88,24 @@ public function indexByEntity(Request $request)
         ], 404);
     }
 
- 
-    $complaints = Complaint::with('governmentEntity')
-        ->where('government_entity_id', $user->government_entity_id)
+    $complaints = Complaint::where('government_entity_id', $user->government_entity_id)
         ->orderByDesc('created_at')
         ->paginate(20);
 
+    $ge = GovernmentEntity::find($user->government_entity_id);
+
     return response()->json([
         'status' => 'success',
-        
-             'name' => $user->governmentEntity->name ?? null,
-        
-        'data' => $complaints->through(function ($complaint) {
-            return [
-                'complaint_id' => $complaint->complaint_id,
-                'title'        => $complaint->title ?? null,
-                'description'  => $complaint->description ?? null,
-                'government_entity' => $complaint->governmentEntity->name ?? null,
-                'created_at'   => $complaint->created_at,
-            ];
-        })
+        'government_entity' => $ge->name,
+        'data' => ComplaintResource::collection($complaints),
+        'meta' => [
+            'current_page' => $complaints->currentPage(),
+            'from'         => $complaints->firstItem(),
+            'to'           => $complaints->lastItem(),
+            'last_page'    => $complaints->lastPage(),
+            'per_page'     => $complaints->perPage(),
+            'total'        => $complaints->total(),
+        ],
     ]);
 }
 

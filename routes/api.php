@@ -41,7 +41,6 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
     Route::middleware([JwtMiddleware::class,'role:admin'/*, 'throttle:60,1' */])->group(function () {
 
         Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
-        Route::post('/storeEmployee', [AdminController::class, 'storeEmployee']);//done
         Route::get('/showEmployee/{id}', [AdminController::class, 'showEmployee']);
         Route::get('/indexEmployees', [AdminController::class, 'indexEmployees']);
         Route::put('/updateEmployee/{id}', [AdminController::class, 'updateEmployee']);

@@ -162,7 +162,7 @@ class AdminController extends Controller
             'governments' => $governments
         ]);
     }
- 
+
     public function addGovernmentEntity(Request $request)
 {
     $validator = Validator::make($request->all(), [
@@ -262,12 +262,12 @@ public function deleteGovernmentEntity($id)
         return response()->json(['complaints' => $stats]);
     }
 
-   
+
 public function search(Request $request)
 {
     $search = trim($request->Key_Search);
 
-    
+
     // إذا كان البحث فارغًا
     /*
     if (!$search) {
