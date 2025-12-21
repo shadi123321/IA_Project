@@ -30,13 +30,22 @@ class UserController extends Controller
 
     public function complaints()
     {
-        $complaints = Complaint::paginate(20);
+        $complaints = Complaint::with('attachments')->paginate(20);
 
         return response()->json([
-            'status' => true,
-            'complaints' => $complaints
+            'status'     => true,
+            'complaints' => ComplaintResource::collection($complaints),
+            'meta'       => [
+                'current_page' => $complaints->currentPage(),
+                'from'         => $complaints->firstItem(),
+                'to'           => $complaints->lastItem(),
+                'last_page'    => $complaints->lastPage(),
+                'per_page'     => $complaints->perPage(),
+                'total'        => $complaints->total(),
+            ],
         ]);
     }
+
 
 public function showComplaint($reference_number)//Request $request)
 {

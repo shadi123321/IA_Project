@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ComplaintResource extends JsonResource
 {
@@ -22,6 +23,14 @@ class ComplaintResource extends JsonResource
             'government_entity' => $this->governmentEntity->name ?? null,
             'status'            => $this->status,
             'created_at'        => $this->created_at,
+
+            'attachments'       => $this->attachments->map(function ($attachment) {
+                return [
+                    'id'        => $attachment->id,
+                    'file_path' => Storage::url($attachment->file_path),
+                    'type'      => $attachment->type ?? null,
+                ];
+            }),
         ];
     }
 }
