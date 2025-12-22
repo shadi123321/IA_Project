@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Complaint;
 use App\Models\ComplaintStatusHistory;
 use App\Http\Requests\StoreComplaintNoteRequest;
- use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator; // <- هنا
+use App\Http\Requests\StoreGovernmentEntityRequest;
 
 
 
@@ -345,6 +346,39 @@ public function MonitoringComplainsDailyPDF(Request $request)
 
     return $pdf->download("monitoring_report_$date.pdf");
 }
+
+    public function addEntity(StoreGovernmentEntityRequest $request)
+    {
+        $government = GovernmentEntity::create($request->validated());
+
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Government entity created successfully',
+            'government'=> $government
+        ], 201);
+
+    }
+
+    public function deleteEntity($id)
+    {
+        $government = GovernmentEntity::find($id);
+
+        if (!$government) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Government entity not found'
+            ], 404);
+        }
+
+        $government->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Government entity deleted successfully'
+        ]);
+    }
+
+
 }
 
 
