@@ -8,6 +8,8 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Notifications\ComplaintStatusUpdatedFcm;
+use Illuminate\Support\Facades\Log;
 
 class ComplaintService
 {
@@ -92,6 +94,24 @@ class ComplaintService
             /* ---------- Invalidate Cache ---------- */
             Cache::forget($cacheKey);
             Cache::forget("complaint:details:{$complain->id}");
+
+            /* ----------- Sending Notification -----------*/
+            if ($complain->user && $complain->user->getFcmToken()) {
+
+                Log::info('Sending FCM Notification', [
+                    'user_id' => $complain->user->id,
+                    'reference_number' => $complain->reference_number,
+                    'new_status' => $complain->status
+                ]);
+
+                $complain->user->notify(new ComplaintStatusUpdatedFcm($complain));
+
+                Log::info('FCM Notification Sent Successfully', [
+                    'user_id' => $complain->user->id,
+                    'reference_number' => $complain->reference_number,
+                    'new_status' => $complain->status
+                ]);
+        }
 
             return $complain;
         });

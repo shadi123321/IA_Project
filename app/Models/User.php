@@ -7,16 +7,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use DevKandil\NotiFire\Traits\HasFcm;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasFcm;
 
     protected $fillable = [
         'name',
         'email',
         'password',
         'government_entity_id',
+        'fcm_token',
         'status',
     ];
 

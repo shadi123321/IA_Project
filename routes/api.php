@@ -35,6 +35,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/government_entities', [UserController::class, 'indexGovernment']);
 
         Route::get('/getRole', [UserController::class, 'getRole']);
+        Route::post('/fcm/token', [UserController::class, 'saveFcmToken']);
 
   });
  ////////admin mmiddleware
@@ -50,7 +51,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 
         Route::get('/governments', [AdminController::class, 'indexGovernment']);
         Route::get('/complaints', [UserController::class, 'complaints']);
-        Route::put('/changeStatus', [UserController::class, 'changeStatus']);
+        Route::post('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
                Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
                Route::get('/statistics', [AdminController::class, 'statistics']);
@@ -74,7 +75,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
      Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
-        Route::put('/changeStatus', [UserController::class, 'changeStatus']);
+        //Route::put('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
     });

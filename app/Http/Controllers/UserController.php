@@ -18,6 +18,7 @@ use App\Services\ComplaintService;
 use App\Http\Resources\ComplaintResource;
 use App\Http\Requests\ChangeComplaintStatusRequest;
 use App\Models\GovernmentEntity;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -26,6 +27,32 @@ class UserController extends Controller
     public function __construct(ComplaintService $statusService)
     {
         $this->statusService = $statusService;
+    }
+
+
+    public function saveFcmToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string'
+        ]);
+
+        $user = Auth::user();
+
+        if ($user->fcm_token !== $request->token) {
+            $user->fcm_token = $request->token;
+            $user->save();
+        }
+
+        Log::info('New FCM Token Saved', [
+            'user_id' => $user->id,
+            'email'   => $user->email,
+            'token'   => $request->token
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'FCM token saved successfully'
+        ]);
     }
 
     public function complaints()
