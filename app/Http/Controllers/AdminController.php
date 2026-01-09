@@ -219,9 +219,16 @@ public function deleteGovernmentEntity($id)
 
     public function MonitoringComplains(Request $request)
     {
-        $perPage = 20;
+        // Get per_page from request, default to 20, max 100
+        $perPage = min((int) $request->input('per_page', 20), 100);
 
-        $data = DB::table('complaints as c')
+        // Get search parameter
+        $search = trim($request->input('search', ''));
+
+        // Get status parameter
+        $status = $request->input('status');
+
+        $query = DB::table('complaints as c')
             ->leftJoin('complaint_status_histories as h', 'h.complaint_id', '=', 'c.complaint_id')
             ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
             ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
@@ -233,8 +240,24 @@ public function deleteGovernmentEntity($id)
                 'employee.name as handled_by_employee',
                 'h.changed_at',
             ])
-            ->orderByDesc('h.changed_at')
-            ->paginate($perPage);
+            ->orderByDesc('h.changed_at');
+
+        // Apply search filter if search parameter is provided
+        if (!empty($search)) {
+            $reference = str_replace('CMP-', '', $search);
+
+            $query->where(function ($q) use ($search, $reference) {
+                $q->where('citizen.name', 'like', "%{$search}%")
+                  ->orWhere('c.reference_number', 'like', "%CMP-{$reference}%");
+            });
+        }
+
+        // Apply status filter if status parameter is provided
+        if (!empty($status)) {
+            $query->where('h.status', $status);
+        }
+
+        $data = $query->paginate($perPage);
 
         return response()->json($data);
     }
