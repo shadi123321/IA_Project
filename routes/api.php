@@ -53,15 +53,15 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/complaints', [UserController::class, 'complaints']);
         Route::post('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
-               Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
-               Route::get('/statistics', [AdminController::class, 'statistics']);
+        Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
+        Route::get('/statistics', [AdminController::class, 'statistics']);
 
-               Route::post('/search', [AdminController::class, 'search']);
-               ////////////////////
-                       Route::delete('/deleteGovernmentEntity/{id}', [AdminController::class, 'deleteGovernmentEntity']);
-               Route::post('/addGovernmentEntity', [AdminController::class, 'addGovernmentEntity']);
+        Route::get('/search', [AdminController::class, 'search']);
 
-               Route::get('/reports/complaints/daily/pdf', [AdminController::class, 'MonitoringComplainsDailyPDF']);
+        Route::delete('/deleteGovernmentEntity/{id}', [AdminController::class, 'deleteGovernmentEntity']);
+        Route::post('/addGovernmentEntity', [AdminController::class, 'addGovernmentEntity']);
+
+        Route::get('/reports/complaints/daily/pdf', [AdminController::class, 'MonitoringComplainsDailyPDF']);
 
         //Route::post('/governementEntity', [AdminController::class, 'addEntity']);
         //Route::delete('/governementEntity/{id}', [AdminController::class, 'deleteEntity']);
@@ -72,8 +72,9 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
  ////////employee mmiddleware
  /*, 'throttle:60,1' =1request per minute*/
     Route::middleware([JwtMiddleware::class,'role:employee'/*, 'throttle:60,1' */])->group(function () {
+
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
-     Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
+        Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
         //Route::put('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);

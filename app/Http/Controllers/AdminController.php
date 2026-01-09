@@ -217,14 +217,12 @@ public function deleteGovernmentEntity($id)
     ]);
 }
 
- public function MonitoringComplains(Request $request)
-{
-    $perPage = 20; // عدد العناصر لكل صفحة
-    $page = $request->get('page', 1); // الصفحة الحالية من الـ query parameter
+    public function MonitoringComplains(Request $request)
+    {
+        $perPage = 20;
 
-    $data = Cache::remember("complaints:monitoring:page_$page", 300, function () use ($perPage) {
-        return DB::table('complaint_status_histories as h')
-            ->join('complaints as c', 'h.complaint_id', '=', 'c.complaint_id')
+        $data = DB::table('complaints as c')
+            ->leftJoin('complaint_status_histories as h', 'h.complaint_id', '=', 'c.complaint_id')
             ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
             ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
             ->select([
@@ -237,10 +235,10 @@ public function deleteGovernmentEntity($id)
             ])
             ->orderByDesc('h.changed_at')
             ->paginate($perPage);
-    });
 
-    return response()->json($data);
-}
+        return response()->json($data);
+    }
+
 
 
    public function statistics()
@@ -264,59 +262,45 @@ public function deleteGovernmentEntity($id)
     }
 
 
-public function search(Request $request)
-{
-    $search = trim($request->Key_Search);
+    public function search(Request $request)
+    {
+        $search = trim($request->Key_Search);
 
+        $reference = str_replace('CMP-', '', $search);
 
-    // إذا كان البحث فارغًا
-    /*
-    if (!$search) {
+        $query = DB::table('complaints as c')
+            ->leftJoin('complaint_status_histories as h', 'h.complaint_id', '=', 'c.complaint_id')
+            ->join('users as citizen', 'c.user_id', '=', 'citizen.id')
+            ->leftJoin('users as employee', 'h.handled_by', '=', 'employee.id')
+            ->select([
+                'c.reference_number',
+                'citizen.name as citizen_name',
+                'h.status',
+                'h.note',
+                'employee.name as handled_by_employee',
+                'h.changed_at',
+            ])
+            ->orderByDesc('h.changed_at');
+
+        $query->where(function ($q) use ($search, $reference) {
+            $q->where('citizen.name', 'like', "%{$search}%")
+              ->orWhere('c.reference_number', 'like', "%CMP-{$reference}%");
+        });
+
+        $data = $query->paginate(20);
+
+        if ($data->isEmpty()) {
+            return response()->json([
+                'message' => 'No results found',
+                'data' => []
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'Key_Search is required',
-            'data' => []
-        ], 422);
+            'data' => $data
+        ]);
+
     }
-*/
-    $page = $request->get('page', 1); // Pagination page
-    $reference = str_replace('CMP-', '', $search);
-
-    // Cache Key ذكي لكل كلمة بحث وصفحة
-    $cacheKey = "search:" . md5($search) . ":page:$page";
-
-    // Cache لمدة 2 دقيقة
-    $result = Cache::remember($cacheKey, 120, function () use ($search, $reference) {
-        // البحث باسم المواطن
-        $userComplaints = Complaint::whereHas('user', function ($q) use ($search) {
-                $q->role('citizen')
-                  ->where('name', 'like', "%{$search}%");
-            })
-            ->with('user')
-            ->paginate(20);
-
-        // البحث بالـ reference_number
-        $referenceComplaints = Complaint::with('user')
-            ->where('reference_number', 'like', "%CMP-{$reference}%")
-            ->paginate(20);
-
-        return [
-            'user_complaints' => $userComplaints,
-            'reference_complaints' => $referenceComplaints,
-        ];
-    });
-
-    // التأكد من وجود نتائج
-    if ($result['user_complaints']->isEmpty() && $result['reference_complaints']->isEmpty()) {
-        return response()->json([
-            'message' => 'No results found',
-            'data' => []
-        ], 404);
-    }
-
-    return response()->json([
-        'data' => $result
-    ]);
-}
 public function MonitoringComplainsDailyPDF(Request $request)
 {
     $date = $request->date
