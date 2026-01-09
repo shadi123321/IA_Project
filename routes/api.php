@@ -52,7 +52,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/governments', [AdminController::class, 'indexGovernment']);
         Route::get('/complaints', [UserController::class, 'complaints']);
         Route::post('/changeStatus', [UserController::class, 'changeStatus']);
-        Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
+        Route::get('/admin/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
         Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
         Route::get('/statistics', [AdminController::class, 'statistics']);
 
@@ -76,7 +76,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
         Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
-        //Route::put('/changeStatus', [UserController::class, 'changeStatus']);
+        Route::put('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
     });
