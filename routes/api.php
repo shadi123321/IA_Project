@@ -76,7 +76,7 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
         Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
-        Route::put('/changeStatus', [UserController::class, 'changeStatus']);
+        Route::post('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
     });
