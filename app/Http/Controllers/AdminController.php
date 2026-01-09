@@ -152,12 +152,12 @@ class AdminController extends Controller
 
     public function indexGovernment()
     {
-        $governments = Cache::remember(
+        /*$governments = Cache::remember(
             'governments:all',
             1800,
             fn() => GovernmentEntity::get()
-        );
-
+        );*/
+        $governments = GovernmentEntity::get();
         return response()->json([
             'status' => true,
             'governments' => $governments
@@ -347,7 +347,7 @@ public function MonitoringComplainsDailyPDF(Request $request)
     return $pdf->download("monitoring_report_$date.pdf");
 }
 
-    public function addEntity(StoreGovernmentEntityRequest $request)
+    /*public function addEntity(StoreGovernmentEntityRequest $request)
     {
         $government = GovernmentEntity::create($request->validated());
 
@@ -376,7 +376,7 @@ public function MonitoringComplainsDailyPDF(Request $request)
             'status' => true,
             'message' => 'Government entity deleted successfully'
         ]);
-    }
+    }*/
 
 
 }
