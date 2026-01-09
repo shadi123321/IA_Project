@@ -19,6 +19,7 @@ use App\Http\Resources\ComplaintResource;
 use App\Http\Requests\ChangeComplaintStatusRequest;
 use App\Models\GovernmentEntity;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\ComplaintReceivedFcm;
 
 class UserController extends Controller
 {
@@ -255,6 +256,23 @@ public function SubmitComplaint(Request $request)
             ]);
         }
     }
+
+    //if ($complaint->user->getFcmToken()) {
+
+                Log::info('Sending FCM Notification', [
+                    'user_id' => $complaint->user->id,
+                    'reference_number' => $complaint->reference_number,
+                    'new_status' => $complaint->status
+                ]);
+
+                $complaint->user->notify(new ComplaintReceivedFcm($complaint));
+
+                Log::info('FCM Notification Sent Successfully', [
+                    'user_id' => $complaint->user->id,
+                    'reference_number' => $complaint->reference_number,
+                    'new_status' => $complaint->status
+                ]);
+    //}
 
     return response()->json(['message' => 'Complaint submitted successfully']);
 }

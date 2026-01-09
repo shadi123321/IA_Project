@@ -15,6 +15,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verifyEmail/{id}', [AuthController::class, 'verifyEmail']);
 Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
 
+// Serve attachment files - accessible to authenticated users
+Route::middleware([JwtMiddleware::class])->group(function () {
+    Route::get('/attachments/{filename}', [UserController::class, 'serveAttachment'])
+        ->where('filename', '.*');
+});
 
     Route::middleware([JwtMiddleware::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -38,6 +43,12 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::post('/fcm/token', [UserController::class, 'saveFcmToken']);
 
   });
+
+ ////////shared routes for admin and employee
+    Route::middleware([JwtMiddleware::class, 'role:admin|employee'])->group(function () {
+        Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
+    });
+
  ////////admin mmiddleware
   /*, 'throttle:60,1' =1request per minute*/
 
@@ -52,7 +63,6 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::get('/governments', [AdminController::class, 'indexGovernment']);
         Route::get('/complaints', [UserController::class, 'complaints']);
         Route::post('/changeStatus', [UserController::class, 'changeStatus']);
-        Route::get('/admin/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
         Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
         Route::get('/statistics', [AdminController::class, 'statistics']);
 
@@ -73,7 +83,6 @@ Route::get('/resendCode/{id}', [AuthController::class, 'resendCode']);
         Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
 
         Route::post('/changeStatus', [UserController::class, 'changeStatus']);
-        Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
 
     });
 

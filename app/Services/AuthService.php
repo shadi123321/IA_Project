@@ -103,10 +103,10 @@ class AuthService
         $token = JWTAuth::fromUser($user);
 
       //  $this->verification->sendCode($user);
-        
+
           $user->email_verified_at = now();
      $user->save();
-        
+     
             try {
                 $token = JWTAuth::fromUser($user);
             } catch (JWTException $e) {
