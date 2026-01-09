@@ -73,46 +73,36 @@ class UserController extends Controller
         ]);
     }
 
+    public function showComplaint($reference_number)
+    {
+        $complain = Complaint::where('reference_number', $reference_number)
+            ->with(['histories' => function($query) {
+                $query->orderBy('changed_at', 'asc');
+            }, 'attachments', 'governmentEntity'])
+            ->firstOrFail();
 
-public function showComplaint($reference_number)//Request $request)
-{
-    /*
-    $request->validate([
-        'reference_number' => 'required|exists:complaints,reference_number',
-    ]);
- */
-    // جلب الشكوى مع جميع السجلات المرتبطة
-    $complain = Complaint::where('reference_number', $reference_number)
-        ->with(['histories' => function($query) {
-            $query->orderBy('changed_at', 'asc');
-        }])
-        ->firstOrFail();
+        $complaintData = (new ComplaintResource($complain))->toArray(request());
 
-    // إضافة اسم الموظف لكل سجل تاريخي
-    $histories = $complain->histories->map(function($history) {
-        $employee = User::find($history->handled_by);
-        return [
-            'status'     => $history->status,
-            'note'       => $history->note,
-            'changed_at' => $history->changed_at,
-            'handled_by' => [
-                'id'   => $history->handled_by,
-                'employee' => $employee->name ?? 'Unknown',
-            ],
-        ];
-    });
+        $histories = $complain->histories->map(function($history) {
+            $employee = User::find($history->handled_by);
+            return [
+                'status'     => $history->status,
+                'note'       => $history->note,
+                'changed_at' => $history->changed_at,
+                'handled_by' => [
+                    'id'       => $history->handled_by,
+                    'employee' => $employee->name ?? 'Unknown',
+                ],
+            ];
+        });
 
-    return response()->json([
-        'status'   => true,
-        'complain' => [
-            'reference_number' => $complain->reference_number,
-            'status'           => $complain->status,
-            'description'      => $complain->description ?? null,
-            'location'         => $complain->location ?? null,
-            'histories'        => $histories,
-        ]
-    ], 200);
-}
+        return response()->json([
+            'status'   => true,
+            'complain' => array_merge($complaintData, [
+                'histories' => $histories,
+            ])
+        ], 200);
+    }
 public function indexByEntity()
 {
     $user = auth('api')->user();
