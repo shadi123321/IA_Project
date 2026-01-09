@@ -285,7 +285,7 @@ public function deleteGovernmentEntity($id)
     }
 
 
-    public function search(Request $request)
+    /*public function search(Request $request)
     {
         $search = trim($request->Key_Search);
 
@@ -323,7 +323,7 @@ public function deleteGovernmentEntity($id)
             'data' => $data
         ]);
 
-    }
+    }*/
 public function MonitoringComplainsDailyPDF(Request $request)
 {
     $date = $request->date

@@ -259,14 +259,14 @@ public function SubmitComplaint(Request $request)
     return response()->json(['message' => 'Complaint submitted successfully']);
 }
 
-public function myComplaints()
-{
-    $complaints = Complaint::where('user_id', auth('api')->id())->paginate(10);
+    public function myComplaints()
+    {
+        $complaints = Complaint::where('user_id', auth('api')->id())
+            ->with('governmentEntity') // Important: load the relationship
+            ->paginate(10);
 
-    // complaint resource doesn't work beacue attachments are not required
-    // they are in separate function and endpoint
-    return response()->json($complaints);
-}
+        return ComplaintResource::collection($complaints);
+    }
 
 public function myComplaintsAtt($id)
 {
@@ -290,12 +290,10 @@ public function myComplaintsAtt($id)
 public function show($id)
 {
     $complaint = Complaint::where('complaint_id', $id)
-        ->with(['histories' => function($query) {
-            $query->orderBy('changed_at', 'asc');
-        }])
+        ->with('governmentEntity')
         ->firstOrFail();
 
-    return response()->json($complaint);
+    return new ComplaintResource($complaint);
 }
 
 public function showAtt($id)
@@ -374,6 +372,7 @@ public function EmployeeAddNote(StoreComplaintNoteRequest $request)
         $reference = $request->get('reference_number');
 
         $complaint = Complaint::where('reference_number', $reference)
+                              ->with('attachments')
                               ->first();
 
         $user = auth('api')->user();

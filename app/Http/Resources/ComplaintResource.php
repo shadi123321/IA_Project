@@ -7,30 +7,33 @@ use Illuminate\Support\Facades\Storage;
 
 class ComplaintResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array<string, mixed>
-     */
     public function toArray($request)
     {
         return [
-            'complaint_id'      => $this->complaint_id,
-            'reference_number ' => $this->reference_number,
-            'type'              => $this->type ?? null,
-            'description'       => $this->description ?? null,
-            'location'          => $this->location ?? null,
-            'government_entity' => $this->governmentEntity->name ?? null,
-            'status'            => $this->status,
-            'created_at'        => $this->created_at,
-
-            'attachments'       => $this->attachments->map(function ($attachment) {
+            'complaint_id'       => $this->complaint_id,
+            'reference_number'   => $this->reference_number,
+            'type'               => $this->type ?? null,
+            'description'        => $this->description ?? null,
+            'location'           => $this->location ?? null,
+            'government_entity'  => $this->whenLoaded('governmentEntity', function() {
                 return [
-                    'id'        => $attachment->id,
-                    'file_path' => Storage::url($attachment->file_path),
-                    'type'      => $attachment->type ?? null,
+                    'id'   => $this->government_entity_id,
+                    'name' => $this->governmentEntity->name ?? null,
                 ];
+            }, $this->government_entity_id), // Fallback to just ID if not loaded
+            'status'             => $this->status,
+            'created_at'         => $this->created_at,
+
+            // Only include attachments when explicitly requested or loaded
+            'attachments' => $this->when($request->get('include_attachments') ||
+                                         $this->relationLoaded('attachments'), function() {
+                return $this->attachments->map(function ($attachment) {
+                    return [
+                        'id'        => $attachment->id,
+                        'file_path' => Storage::url($attachment->file_path),
+                        'type'      => $attachment->type ?? null,
+                    ];
+                });
             }),
         ];
     }
