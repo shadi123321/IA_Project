@@ -47,6 +47,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
  ////////shared routes for admin and employee
     Route::middleware([JwtMiddleware::class, 'role:admin|employee'])->group(function () {
         Route::get('/showComplaint/{reference_number}', [UserController::class, 'showComplaint']);
+        Route::post('/changeStatus', [UserController::class, 'changeStatus']);
     });
 
  ////////admin mmiddleware
@@ -62,7 +63,6 @@ Route::middleware([JwtMiddleware::class])->group(function () {
 
         Route::get('/governments', [AdminController::class, 'indexGovernment']);
         Route::get('/complaints', [UserController::class, 'complaints']);
-        Route::post('/changeStatus', [UserController::class, 'changeStatus']);
         Route::get('MonitoringComplains', [AdminController::class, 'MonitoringComplains']);
         Route::get('/statistics', [AdminController::class, 'statistics']);
 
@@ -81,8 +81,6 @@ Route::middleware([JwtMiddleware::class])->group(function () {
 
         Route::get('/indexByEntity', [UserController::class, 'indexByEntity']);
         Route::post('/EmployeeAddNote', [UserController::class, 'EmployeeAddNote']);
-
-        Route::post('/changeStatus', [UserController::class, 'changeStatus']);
 
     });
 

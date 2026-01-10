@@ -17,7 +17,7 @@ class ComplaintResource extends JsonResource
             'location'           => $this->location ?? null,
             'government_entity'  => $this->whenLoaded('governmentEntity', function() {
                 return [
-                    'id'   => $this->government_entity_id,
+                    'entity_id'   => $this->government_entity_id,
                     'name' => $this->governmentEntity->name ?? null,
                 ];
             }, $this->government_entity_id), // Fallback to just ID if not loaded
